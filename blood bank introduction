@@ -1,0 +1,229 @@
+import 'package:flutter/material.dart';
+import 'dart:math';
+
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
+  // This widget is the root of your application.
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(home: LoginScreen());
+  }
+}
+
+class LoginScreen extends StatefulWidget {
+  LoginScreen({Key? key}) : super(key: key);
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  String initailButtonValue = "Coding";
+  Map<int, String> bbmap = {};
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        body: Center(
+      child: FutureBuilder(
+        future: getBloodBanksFromCloud(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const CircularProgressIndicator();
+          }
+
+          if (snapshot.hasData) {
+            return ListView(
+              children: [...convertToWidget(snapshot.data as List<String>)],
+            );
+          }
+
+          if (snapshot.hasError) return Text(snapshot.error.toString());
+
+          return Container();
+        },
+      ),
+    ));
+  }
+
+  void makeBbMap() {
+    Map<int, String> bbmap = {};
+    final bb = <int, String>{1: "Red Cross", 2: "Blue Cross"};
+    bbmap.addAll(bb);
+  }
+
+  List<Widget> convertToWidget(List<String> bloodBanks) {
+    List<Widget> myWidgets = [];
+    for (int i = 0; i < bloodBanks.length; i++) {
+      myWidgets.add(myCustomWidget(bloodBanks[i]));
+    }
+    return myWidgets;
+  }
+
+  Widget myCustomWidget(String text) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Container(child: Text(text)),
+    );
+  }
+
+  Future<List<String>> getBloodBanksFromCloud() async {
+    // faking bringing data from cloud
+    var time = await Future.delayed(Duration(seconds: 2));
+    Random random = Random();
+    int randomNumber = random.nextInt(3);
+
+    if (randomNumber == 0)
+      return [
+        "Red Cross Blood Bank",
+        "Rajiv Gandi Blood Bank",
+        "Modi ji Blood Bank"
+      ];
+    else if (randomNumber == 1)
+      throw Exception("Network exception");
+    else
+      
+      throw Exception("Server Exception");
+  }
+}
+
+List<BloodBank> getAllBloodBanks() {
+  BloodBank modiJiBloodBank = BloodBank( name: "Modi Ji", id : 3);
+
+  BloodBank rahulBloodBank = BloodBank(name: "Rahul", id: 2);
+
+  return [modiJiBloodBank, rahulBloodBank];
+  
+}
+/*
+class BloodBank {
+  int? id;
+  String? name;
+  String? address;
+  int? lat;
+  int? long;
+  double? minEmergencyBlood;
+  //"B+", "B-", "O+", "AB-"
+  Map<String, double>? currentBloodStatus;
+
+  BloodBank(
+      {required this.id,
+      required this.name,
+      this.address,
+      this.lat,
+      this.long,
+      this.minEmergencyBlood});
+
+  bool donateBlood(String bloodGroup, double quantity) {
+    return true;
+  }
+
+  bool acceptBlood(String bloodGroup, double quantity) {
+    return true;
+  }
+
+  String testBloodGroup(String patientReport) {
+    return "AB-";
+  }
+
+  bool validateBlood() {
+    return true;
+  }
+}
+*/
+class BloodBank{
+  int?id;
+  String?name;
+  String?address;
+  int?lat;
+  int?long;
+  double?minEmergencyBlood;
+  Map<String,double>? currentBloodStatus;
+  int maxCap=1;
+  int total=0;
+
+  BloodBank(
+    {
+      required this.id,
+      required this.name,
+      required this.maxCap,
+      this.address,
+      this.lat,
+      this.long,
+      this.minEmergencyBlood,
+    }
+  );
+  bool donateBlood(String bloodGroup,double quantity){
+    return true;
+}
+bool acceptBlood(String bloodGroup,int quantity){
+  if(total+quantity<=maxCap){
+    total+=quantity;
+  }
+  else
+  print("Capacity is full");
+  return true;
+}
+String testBloodGroup(String patientReport){
+  return "AB-";
+}
+bool validateBlood(){
+  return true;
+}
+}
+class PrivateBloodBank extends BloodBank{
+  PrivateBloodBank(
+    {
+      required int id,
+      required String name,
+      String?address,
+      int?lat,
+      int?long,
+      double?minEmergencyBlood}):super(id: id,
+      name: name,
+      lat: lat,
+      long: long,
+      minEmergencyBlood: minEmergencyBlood,
+      maxCap: 10);
+}
+class GovtBloodBank extends BloodBank{
+  GovtBloodBank(
+    {
+      required int id,
+      required String name,
+      String?address,
+      int?lat,
+      int?long,
+      double?minEmergencyBlood}):super(id: id,
+      name: name,
+      address: address,
+      lat: lat,
+      long: long,
+      minEmergencyBlood: minEmergencyBlood,
+      maxCap: 5);
+
+}
+void main(){
+  GovtBloodBank bb1=GovtBloodBank(id: 1, name: "abc");
+  bb1.acceptBlood("B+", 2);
+  bb1.acceptBlood("B+", 4);
+
+  PrivateBloodBank bb2=PrivateBloodBank(id: 1, name: "xyz");
+  bb2.acceptBlood("B+", 2);
+  bb2.acceptBlood("B+", 4);
+  
+  List<BloodBank>bbs=[];
+  bbs.add(GovtBloodBank(id: 1, name: "abc"));
+  bbs.add(PrivateBloodBank(id: 1, name: "xyz"));
+  for(var bb in bbs){
+    print(bb.name);
+    bb.acceptBlood("B+", 2);
+    bb.acceptBlood("B+", 4);
+  }
+}
+
